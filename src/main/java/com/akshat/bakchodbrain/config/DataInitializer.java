@@ -104,26 +104,21 @@ public class DataInitializer implements CommandLineRunner {
                     String slug = qMap.get("categorySlug");
                     String text = qMap.get("questionText");
 
-                    // Avoid duplicate questions
-                    if (questionRepository.existsByQuestionText(text)) {
-                        continue;
-                    }
-
                     var catOpt = categoryRepository.findBySlug(slug);
                     if (catOpt.isPresent()) {
-                        Question q = Question.builder()
-                                .category(catOpt.get())
-                                .questionText(text.trim())
-                                .optionA(qMap.get("optionA").trim())
-                                .optionB(qMap.get("optionB").trim())
-                                .optionC(qMap.get("optionC").trim())
-                                .optionD(qMap.get("optionD").trim())
-                                .correctOption(qMap.get("correctOption").trim().toUpperCase())
-                                .explanation(qMap.get("explanation"))
-                                .customRoast(qMap.get("customRoast"))
-                                .customPraise(qMap.get("customPraise"))
-                                .difficulty(qMap.getOrDefault("difficulty", "MEDIUM"))
-                                .build();
+                        Question q = questionRepository.findByQuestionText(text.trim())
+                                .orElse(Question.builder().category(catOpt.get()).questionText(text.trim()).build());
+
+                        q.setCategory(catOpt.get());
+                        q.setOptionA(qMap.get("optionA").trim());
+                        q.setOptionB(qMap.get("optionB").trim());
+                        q.setOptionC(qMap.get("optionC").trim());
+                        q.setOptionD(qMap.get("optionD").trim());
+                        q.setCorrectOption(qMap.get("correctOption").trim().toUpperCase());
+                        q.setExplanation(qMap.get("explanation"));
+                        q.setCustomRoast(qMap.get("customRoast"));
+                        q.setCustomPraise(qMap.get("customPraise"));
+                        q.setDifficulty(qMap.getOrDefault("difficulty", "MEDIUM"));
 
                         questionRepository.save(q);
                         addedCount++;
@@ -131,7 +126,7 @@ public class DataInitializer implements CommandLineRunner {
                 }
 
                 if (addedCount > 0) {
-                    log.info("BakchodBrain: Successfully seeded {} new savage questions from questions.json!", addedCount);
+                    log.info("BakchodBrain: Successfully seeded/updated {} savage questions from questions.json!", addedCount);
                 }
             }
         } catch (Exception e) {

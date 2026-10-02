@@ -46,11 +46,13 @@ public class QuizService {
             throw new RuntimeException("Category '" + categorySlug + "' me abhi koi questions nahi hain.");
         }
 
-        // Shuffle questions
+        // Shuffle questions and select a crisp round of 10 questions
         List<Question> shuffled = new ArrayList<>(questions);
         Collections.shuffle(shuffled);
 
-        return shuffled.stream().map(q -> QuestionDto.builder()
+        return shuffled.stream()
+                .limit(10)
+                .map(q -> QuestionDto.builder()
                 .id(q.getId())
                 .questionText(q.getQuestionText())
                 .optionA(q.getOptionA())

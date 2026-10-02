@@ -36,7 +36,7 @@
             <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center gap-3">
                     <span id="questionCounter" class="text-xs font-mono text-purple-400 font-bold uppercase tracking-wider">
-                        Question 1 of 5
+                        Question 1 of 10
                     </span>
                     <span id="streakBadge" class="hidden text-xs font-bold px-2.5 py-0.5 rounded-full font-mono">
                         🔥 Streak: 0
@@ -110,6 +110,7 @@
         let timeLeft = 15;
         let answered = false;
         let audioEnabled = true;
+        let quizSessionStartTime = 0;
 
         // Web Audio API Synthesizer (Zero External File Dependencies)
         let audioCtx = null;
@@ -191,6 +192,7 @@
                 document.getElementById('loadingBox').classList.add('hidden');
                 document.getElementById('quizContainer').classList.remove('hidden');
 
+                quizSessionStartTime = performance.now();
                 showQuestion(0);
             } catch (err) {
                 alert('Sawal load nahi ho paye: ' + err.message);
@@ -411,7 +413,7 @@
 
             try {
                 const total = questions.length;
-                const totalTime = 45; // average estimated
+                const totalTime = quizSessionStartTime ? Math.max(5, Math.round((performance.now() - quizSessionStartTime) / 1000)) : 45;
                 const res = await fetch('/api/v1/quiz/finish', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
