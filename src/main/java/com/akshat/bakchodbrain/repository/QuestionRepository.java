@@ -16,4 +16,6 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findByCategorySlug(@Param("slug") String slug);
 
     long countByCategoryId(Long categoryId);
+
+    boolean existsByQuestionText(String questionText);
 }
