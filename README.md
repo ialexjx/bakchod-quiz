@@ -1,6 +1,6 @@
 # BakchodBrain 🧠⚡
 > **Desh Ka Sabse Unhinged & Savage Trivia Arena**
-> Spring Boot 3.5 • Java 21 (Project Loom Virtual Threads) • Render & Multi-Cloud Native • Zero Mercy Roasts
+> Created by **Akshat** (@ialexjx) • Zero Mercy Roasts
 
 ---
 
