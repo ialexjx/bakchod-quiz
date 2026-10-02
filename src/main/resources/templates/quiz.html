@@ -340,7 +340,9 @@
 
         function renderAnswerResult(result, selectedKey, timeTaken) {
             currentStreak = result.newStreak;
-            if (result.isCorrect) {
+            const isCorrect = (result.isCorrect === true || result.correct === true);
+
+            if (isCorrect) {
                 correctCount++;
                 playSound('correct');
             } else {
@@ -356,7 +358,7 @@
             const selectedBtn = document.getElementById(`opt-${selectedKey}`);
             const correctBtn = document.getElementById(`opt-${result.correctOption}`);
 
-            if (result.isCorrect && selectedBtn) {
+            if (isCorrect && selectedBtn) {
                 selectedBtn.classList.add('correct');
             } else {
                 if (selectedBtn) selectedBtn.classList.add('wrong');
@@ -373,7 +375,7 @@
             feedbackBox.classList.remove('hidden');
             feedbackBox.classList.add('animate-pop');
 
-            if (result.isCorrect) {
+            if (isCorrect) {
                 feedbackBox.className = 'rounded-xl p-5 border bg-emerald-950/30 border-emerald-500/30 mb-6 animate-pop';
                 feedbackTone.className = 'badge-pill badge-success text-xs font-bold font-mono';
                 feedbackTone.textContent = result.roastTone || 'RESPECT';

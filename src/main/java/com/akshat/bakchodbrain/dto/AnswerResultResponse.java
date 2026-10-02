@@ -1,5 +1,6 @@
 package com.akshat.bakchodbrain.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @Getter
@@ -8,7 +9,15 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class AnswerResultResponse {
+
+    @JsonProperty("isCorrect")
     private boolean isCorrect;
+
+    @JsonProperty("correct")
+    public boolean getCorrect() {
+        return isCorrect;
+    }
+
     private String selectedOption;
     private String correctOption;
     private String explanation;
