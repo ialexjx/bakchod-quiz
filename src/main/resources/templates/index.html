@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BakchodBrain 🧠⚡ | India's Most Savage Trivia Arena</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="stylesheet" th:href="@{/css/apple-glass.css}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            purple: '#8b5cf6',
+                            pink: '#ec4899',
+                            rose: '#f43f5e',
+                            dark: '#080a11'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Top Navigation -->
+    <header class="glass-nav py-4 px-6 md:px-12 flex justify-between items-center">
+        <a href="/" class="flex items-center gap-3 no-underline">
+            <img th:src="@{/favicon.svg}" alt="Logo" class="w-9 h-9">
+            <span class="text-2xl font-black tracking-tight text-white">Bakchod<span class="text-gradient">Brain</span></span>
+        </a>
+        <div class="flex items-center gap-4">
+            <a href="/admin" class="badge-pill hover:bg-white/10 text-white/80 transition-all text-xs font-mono">
+                👑 Dictator Console
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-6 py-12 flex flex-col items-center">
+        
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold uppercase tracking-widest mb-6">
+            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+            Zero Censorship • 100% Savage Roasts
+        </div>
+
+        <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold text-center tracking-tight text-white mb-6 glow-title leading-tight max-w-4xl">
+            Sahi doge to taareef,<br>
+            Galat pe <span class="text-gradient">khandan roast</span> hoga.
+        </h1>
+
+        <p class="text-slate-400 text-lg md:text-xl text-center max-w-2xl mb-12">
+            Desh-duniya, corporate slavery aur relationships ke aise sawal jo tumhare dimag ka dahi bana denge. Apni stream choose karo aur aukaat dekho.
+        </p>
+
+        <!-- Player Nickname Modal / Form trigger -->
+        <div class="glass-panel p-6 sm:p-8 w-full max-w-xl mb-16 shadow-2xl">
+            <label class="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-2">
+                Pehle apna naam ya nickname batao:
+            </label>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input id="playerNameInput" type="text" placeholder="e.g. Bunty Berozgar / TCS Survivor" 
+                       value="Gumnam Bakchod" 
+                       class="glass-input flex-1 font-medium">
+            </div>
+            <p class="text-xs text-slate-500 mt-2">
+                * Isi naam se tumhara bezti certificate (Scorecard) generate hoga.
+            </p>
+        </div>
+
+        <!-- Categories Heading -->
+        <div class="w-full mb-6 flex justify-between items-end">
+            <div>
+                <h2 class="text-2xl font-bold text-white">Select Your Arena</h2>
+                <p class="text-sm text-slate-400">Stream select karo aur quiz shuru karo</p>
+            </div>
+            <span class="text-xs font-mono text-purple-400" th:text="${categories.size()} + ' Arenas Ready'"></span>
+        </div>
+
+        <!-- Category Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mb-16">
+            <div th:each="cat : ${categories}" 
+                 th:attr="data-slug=${cat.slug}"
+                 onclick="startQuiz(this.getAttribute('data-slug'))"
+                 class="glass-card group flex flex-col justify-between hover:border-purple-500/50 transition-all duration-300">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-4xl" th:text="${cat.iconEmoji}">🔥</span>
+                        <span class="badge-pill text-xs font-mono" 
+                              th:text="${cat.questions.size()} + ' Sawal'">10 Sawal</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors" 
+                        th:text="${cat.name}">Category Name</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed" 
+                       th:text="${cat.description}">Category Description</p>
+                </div>
+                <div class="mt-6 flex items-center justify-between pt-4 border-t border-white/5">
+                    <span class="text-xs font-mono text-slate-500 uppercase tracking-wider">Tap to Enter Arena</span>
+                    <span class="text-purple-400 font-bold group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Savage Rules Banner -->
+        <div class="glass-panel p-8 w-full max-w-4xl border-purple-500/20 bg-purple-950/20">
+            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <span>⚡</span> Arena ke Bakchod Niyam:
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm text-slate-300">
+                <div class="flex flex-col gap-1">
+                    <strong class="text-white font-semibold">15 Seconds Limit</strong>
+                    <span class="text-slate-400 text-xs">Jaldi answer nahi diya to roast machine automatic trigger ho jayegi.</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <strong class="text-white font-semibold">Infinite Roast Matrix</strong>
+                    <span class="text-slate-400 text-xs">Overthinking (<13s) aur overconfident blunder (<1.5s) dono pe alag bezti hai.</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <strong class="text-white font-semibold">Live Sound Effects</strong>
+                    <span class="text-slate-400 text-xs">Zero lag synthetic audio browser se seedha bajega. Volume on rakhna!</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-nav py-6 text-center text-xs text-slate-500">
+        <p>BakchodBrain &copy; 2026 • Built for maximum bakchodi & zero mercy • Render & Loom Powered</p>
+    </footer>
+
+    <script>
+        function startQuiz(categorySlug) {
+            const input = document.getElementById('playerNameInput');
+            let name = input ? input.value.trim() : '';
+            if (!name) name = 'Gumnam Bakchod';
+            sessionStorage.setItem('bakchod_player_name', name);
+            window.location.href = `/quiz/${categorySlug}?name=${encodeURIComponent(name)}`;
+        }
+    </script>
+</body>
+</html>

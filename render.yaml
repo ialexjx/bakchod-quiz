@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: bakchodbrain
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: ADMIN_SECRET_KEY
+        value: bakchodadmin69
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bakchodbrain-postgres
+          property: connectionString
+
+databases:
+  - name: bakchodbrain-postgres
+    plan: free
+    region: oregon
+    databaseName: bakchodbrain_db
+    user: bakchod_user

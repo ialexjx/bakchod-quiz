@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${category.name} + ' | BakchodBrain Arena'">Arena | BakchodBrain</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="stylesheet" th:href="@{/css/apple-glass.css}">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Arena Header -->
+    <header class="glass-nav py-4 px-6 md:px-12 flex justify-between items-center">
+        <a href="/" class="flex items-center gap-2 no-underline text-white font-bold">
+            <span class="text-xl">←</span>
+            <span class="text-sm font-mono text-slate-400 hover:text-white transition">Exit Arena</span>
+        </a>
+
+        <div class="flex items-center gap-3">
+            <span class="badge-pill badge-purple text-xs font-mono" id="playerBadge" th:text="${candidateName}">Candidate</span>
+            <span class="badge-pill bg-white/5 text-xs font-mono" th:text="${category.name}">Category</span>
+            <button id="soundToggleBtn" onclick="toggleAudio()" class="badge-pill hover:bg-white/10 text-xs">
+                🔊 Sound ON
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Quiz Arena -->
+    <main class="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col justify-center">
+
+        <!-- Quiz Container -->
+        <div id="quizContainer" class="glass-panel p-6 sm:p-10 relative">
+
+            <!-- Question Progress & Timer Header -->
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-3">
+                    <span id="questionCounter" class="text-xs font-mono text-purple-400 font-bold uppercase tracking-wider">
+                        Question 1 of 5
+                    </span>
+                    <span id="streakBadge" class="hidden text-xs font-bold px-2.5 py-0.5 rounded-full font-mono">
+                        🔥 Streak: 0
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-mono text-slate-400">Timer:</span>
+                    <span id="timerText" class="text-sm font-mono font-bold text-amber-400">15s</span>
+                </div>
+            </div>
+
+            <!-- Timer Progress Bar -->
+            <div class="timer-bar mb-8">
+                <div id="timerProgress" class="timer-fill"></div>
+            </div>
+
+            <!-- Question Text -->
+            <h2 id="questionText" class="text-xl sm:text-2xl font-bold text-white mb-8 leading-snug">
+                Sawal load ho raha hai...
+            </h2>
+
+            <!-- Options Grid -->
+            <div id="optionsGrid" class="flex flex-col gap-3.5 mb-6">
+                <!-- Injected via JavaScript -->
+            </div>
+
+            <!-- Roast / Praise Reaction Box -->
+            <div id="feedbackBox" class="hidden rounded-xl p-5 border transition-all duration-300 mb-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span id="feedbackTone" class="badge-pill text-xs font-bold font-mono"></span>
+                    <span id="feedbackSpeed" class="text-xs font-mono text-slate-400"></span>
+                </div>
+                <p id="feedbackRoast" class="text-base font-semibold text-white mb-2 leading-relaxed"></p>
+                <p id="feedbackExplanation" class="text-xs text-slate-300 font-normal leading-relaxed"></p>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex justify-end items-center gap-4 pt-4 border-t border-white/5">
+                <button id="nextBtn" onclick="nextQuestion()" class="btn-primary hidden">
+                    <span>Agla Sawal</span>
+                    <span>→</span>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loadingBox" class="text-center py-16">
+            <div class="inline-block w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p class="text-slate-400 font-mono text-sm">Bakchod question bank se sawal chori kiye ja rahe hain...</p>
+        </div>
+
+    </main>
+
+    <footer class="py-4 text-center text-xs text-slate-600 font-mono">
+        BakchodBrain Engine v1.0 • No Mercy Policy Active
+    </footer>
+
+    <!-- Web Audio & Quiz Engine -->
+    <script th:inline="javascript">
+        const categorySlug = /*[[${category.slug}]]*/ 'tech-corporate';
+        const candidateName = /*[[${candidateName}]]*/ 'Gumnam Bakchod';
+
+        let questions = [];
+        let currentIndex = 0;
+        let correctCount = 0;
+        let wrongCount = 0;
+        let currentStreak = 0;
+        let questionStartTime = 0;
+        let timerInterval = null;
+        let timeLeft = 15;
+        let answered = false;
+        let audioEnabled = true;
+
+        // Web Audio API Synthesizer (Zero External File Dependencies)
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'correct') {
+                    // Upbeat arpeggio triumph
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now); // A4
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'wrong') {
+                    // Dissonant sad buzzer
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.linearRampToValueAtTime(110, now + 0.4);
+                    gain.gain.setValueAtTime(0.4, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                } else if (type === 'timeout') {
+                    // Exploding timeout buzz
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.exponentialRampToValueAtTime(60, now + 0.5);
+                    gain.gain.setValueAtTime(0.4, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                } else {
+                    // Subtle click
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(520, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                }
+            } catch (e) {
+                console.warn('Audio play failed', e);
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('soundToggleBtn');
+            btn.textContent = audioEnabled ? '🔊 Sound ON' : '🔇 Sound OFF';
+            btn.className = audioEnabled ? 'badge-pill hover:bg-white/10 text-xs' : 'badge-pill bg-rose-500/20 text-rose-300 text-xs';
+        }
+
+        // Fetch Questions on Load
+        async function loadQuestions() {
+            try {
+                const res = await fetch(`/api/v1/quiz/${categorySlug}/questions`);
+                if (!res.ok) throw new Error('Failed to load questions');
+                questions = await res.json();
+                
+                document.getElementById('loadingBox').classList.add('hidden');
+                document.getElementById('quizContainer').classList.remove('hidden');
+
+                showQuestion(0);
+            } catch (err) {
+                alert('Sawal load nahi ho paye: ' + err.message);
+                window.location.href = '/';
+            }
+        }
+
+        function showQuestion(index) {
+            if (index >= questions.length) {
+                finishQuizSession();
+                return;
+            }
+
+            answered = false;
+            currentIndex = index;
+            const q = questions[index];
+
+            // Reset UI
+            document.getElementById('questionCounter').textContent = `Question ${index + 1} of ${questions.length}`;
+            document.getElementById('questionText').textContent = q.questionText;
+            document.getElementById('feedbackBox').classList.add('hidden');
+            document.getElementById('nextBtn').classList.add('hidden');
+
+            // Streak indicator
+            updateStreakUI();
+
+            // Populate options
+            const optionsGrid = document.getElementById('optionsGrid');
+            optionsGrid.innerHTML = '';
+
+            const opts = [
+                { key: 'A', text: q.optionA },
+                { key: 'B', text: q.optionB },
+                { key: 'C', text: q.optionC },
+                { key: 'D', text: q.optionD }
+            ];
+
+            opts.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.id = `opt-${opt.key}`;
+                btn.onclick = () => selectOption(opt.key);
+                btn.innerHTML = `
+                    <span class="opt-badge">${opt.key}</span>
+                    <span class="flex-1">${opt.text}</span>
+                `;
+                optionsGrid.appendChild(btn);
+            });
+
+            // Start 15s Timer
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 15;
+            questionStartTime = performance.now();
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerText = document.getElementById('timerText');
+            const timerProgress = document.getElementById('timerProgress');
+            timerText.textContent = `${timeLeft}s`;
+
+            const percentage = (timeLeft / 15) * 100;
+            timerProgress.style.width = `${percentage}%`;
+
+            if (timeLeft <= 3) {
+                timerText.className = 'text-sm font-mono font-bold text-rose-500 animate-pulse';
+                timerProgress.style.background = '#f43f5e';
+            } else if (timeLeft <= 7) {
+                timerText.className = 'text-sm font-mono font-bold text-amber-400';
+                timerProgress.style.background = '#f59e0b';
+            } else {
+                timerText.className = 'text-sm font-mono font-bold text-emerald-400';
+                timerProgress.style.background = 'var(--gradient-brand)';
+            }
+        }
+
+        function updateStreakUI() {
+            const streakBadge = document.getElementById('streakBadge');
+            if (currentStreak > 1) {
+                streakBadge.classList.remove('hidden');
+                streakBadge.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                streakBadge.textContent = `🔥 ${currentStreak} In A Row!`;
+            } else if (currentStreak < -1) {
+                streakBadge.classList.remove('hidden');
+                streakBadge.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full font-mono bg-rose-500/20 text-rose-400 border border-rose-500/30';
+                streakBadge.textContent = `💀 Bezti Streak: ${Math.abs(currentStreak)}`;
+            } else {
+                streakBadge.classList.add('hidden');
+            }
+        }
+
+        async function selectOption(selectedKey) {
+            if (answered) return;
+            answered = true;
+            clearInterval(timerInterval);
+
+            const timeTaken = ((performance.now() - questionStartTime) / 1000).toFixed(2);
+            const currentQ = questions[currentIndex];
+
+            // Disable all option buttons
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(btn => btn.disabled = true);
+
+            // Backend validation & roast computation
+            try {
+                const response = await fetch('/api/v1/quiz/submit-answer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        questionId: currentQ.id,
+                        selectedOption: selectedKey,
+                        timeTakenSeconds: parseFloat(timeTaken),
+                        currentStreak: currentStreak
+                    })
+                });
+
+                if (!response.ok) throw new Error('Answer evaluation failed');
+                const result = await response.json();
+
+                renderAnswerResult(result, selectedKey, timeTaken);
+            } catch (err) {
+                console.error(err);
+                alert('Jawab submit karne me dikkat aayi!');
+            }
+        }
+
+        function handleTimeout() {
+            if (answered) return;
+            selectOption('NONE');
+        }
+
+        function renderAnswerResult(result, selectedKey, timeTaken) {
+            currentStreak = result.newStreak;
+            if (result.isCorrect) {
+                correctCount++;
+                playSound('correct');
+            } else {
+                wrongCount++;
+                playSound(result.audioEffect || 'wrong');
+                // Shake quiz panel on wrong answer
+                const container = document.getElementById('quizContainer');
+                container.classList.add('animate-shake');
+                setTimeout(() => container.classList.remove('animate-shake'), 500);
+            }
+
+            // Highlight buttons
+            const selectedBtn = document.getElementById(`opt-${selectedKey}`);
+            const correctBtn = document.getElementById(`opt-${result.correctOption}`);
+
+            if (result.isCorrect && selectedBtn) {
+                selectedBtn.classList.add('correct');
+            } else {
+                if (selectedBtn) selectedBtn.classList.add('wrong');
+                if (correctBtn) correctBtn.classList.add('correct');
+            }
+
+            // Populate Roast Feedback Box
+            const feedbackBox = document.getElementById('feedbackBox');
+            const feedbackTone = document.getElementById('feedbackTone');
+            const feedbackSpeed = document.getElementById('feedbackSpeed');
+            const feedbackRoast = document.getElementById('feedbackRoast');
+            const feedbackExplanation = document.getElementById('feedbackExplanation');
+
+            feedbackBox.classList.remove('hidden');
+            feedbackBox.classList.add('animate-pop');
+
+            if (result.isCorrect) {
+                feedbackBox.className = 'rounded-xl p-5 border bg-emerald-950/30 border-emerald-500/30 mb-6 animate-pop';
+                feedbackTone.className = 'badge-pill badge-success text-xs font-bold font-mono';
+                feedbackTone.textContent = result.roastTone || 'RESPECT';
+            } else {
+                feedbackBox.className = 'rounded-xl p-5 border bg-rose-950/30 border-rose-500/30 mb-6 animate-pop';
+                feedbackTone.className = 'badge-pill badge-savage text-xs font-bold font-mono';
+                feedbackTone.textContent = result.roastTone || 'SAVAGE ROAST';
+            }
+
+            feedbackSpeed.textContent = `⚡ Time: ${timeTaken}s`;
+            feedbackRoast.textContent = result.roastMessage;
+            feedbackExplanation.textContent = result.explanation ? `💡 Sach ye tha: ${result.explanation}` : '';
+
+            updateStreakUI();
+
+            // Reveal Next Button
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.classList.remove('hidden');
+            if (currentIndex === questions.length - 1) {
+                nextBtn.innerHTML = '<span>Scorecard & Bezti Dekho</span> <span>🏆</span>';
+            } else {
+                nextBtn.innerHTML = '<span>Agla Sawal</span> <span>→</span>';
+            }
+        }
+
+        function nextQuestion() {
+            showQuestion(currentIndex + 1);
+        }
+
+        async function finishQuizSession() {
+            document.getElementById('quizContainer').classList.add('hidden');
+            document.getElementById('loadingBox').classList.remove('hidden');
+            document.getElementById('loadingBox').innerHTML = `
+                <div class="inline-block w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p class="text-white font-mono text-sm">Tumhara aukaat meter calculate kiya ja raha hai...</p>
+            `;
+
+            try {
+                const total = questions.length;
+                const totalTime = 45; // average estimated
+                const res = await fetch('/api/v1/quiz/finish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        candidateName: candidateName,
+                        categorySlug: categorySlug,
+                        totalQuestions: total,
+                        correctCount: correctCount,
+                        wrongCount: wrongCount,
+                        timeTakenSeconds: totalTime
+                    })
+                });
+
+                if (!res.ok) throw new Error('Quiz finalization failed');
+                const scorecard = await res.json();
+                window.location.href = `/result/${scorecard.attemptId}`;
+            } catch (err) {
+                alert('Scorecard save nahi ho paya: ' + err.message);
+                window.location.href = '/';
+            }
+        }
+
+        // Initialize quiz
+        window.addEventListener('DOMContentLoaded', loadQuestions);
+    </script>
+</body>
+</html>

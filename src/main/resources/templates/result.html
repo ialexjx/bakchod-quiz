@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savage Scorecard | BakchodBrain 🧠⚡</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="stylesheet" th:href="@{/css/apple-glass.css}">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="glass-nav py-4 px-6 md:px-12 flex justify-between items-center">
+        <a href="/" class="flex items-center gap-3 no-underline">
+            <img th:src="@{/favicon.svg}" alt="Logo" class="w-8 h-8">
+            <span class="text-xl font-black text-white">Bakchod<span class="text-gradient">Brain</span></span>
+        </a>
+        <a href="/" class="btn-secondary text-xs py-2 px-4">
+            🔄 New Quiz
+        </a>
+    </header>
+
+    <main class="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-10 flex flex-col items-center">
+
+        <!-- Scorecard Card -->
+        <div class="glass-panel p-8 sm:p-12 w-full text-center relative overflow-hidden border-purple-500/30 shadow-2xl">
+
+            <!-- Decorative background glow circle -->
+            <div class="absolute -top-24 -left-24 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-pink-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Candidate Title Badge -->
+            <div class="inline-block mb-3">
+                <span class="badge-pill badge-savage text-xs uppercase tracking-widest font-mono font-bold"
+                      th:text="${scorecard.rankBadge}">
+                    CLOWN OF THE DECADE
+                </span>
+            </div>
+
+            <!-- Savage Roast Title -->
+            <h1 class="text-3xl sm:text-5xl font-black text-white mb-2 tracking-tight"
+                th:text="${scorecard.roastTitle}">
+                CERTIFIED GAWAR
+            </h1>
+
+            <p class="text-slate-400 text-sm font-mono mb-8">
+                Official Bezti Certificate for <span class="text-white font-bold" th:text="${scorecard.candidateName}">Candidate</span> in <span class="text-purple-300 font-semibold" th:text="${scorecard.categoryName}">Tech Arena</span>
+            </p>
+
+            <!-- Score Circle / Stats Box -->
+            <div class="glass-panel py-6 px-4 max-w-md mx-auto mb-8 bg-black/40 border-white/10 flex justify-around items-center">
+                <div>
+                    <span class="block text-4xl sm:text-5xl font-extrabold text-gradient" th:text="${scorecard.score} + '%'">
+                        40%
+                    </span>
+                    <span class="text-xs font-mono text-slate-400 uppercase tracking-wider">Accuracy</span>
+                </div>
+                <div class="h-12 w-px bg-white/10"></div>
+                <div>
+                    <span class="block text-2xl sm:text-3xl font-bold text-emerald-400" th:text="${scorecard.correctCount}">
+                        2
+                    </span>
+                    <span class="text-xs font-mono text-slate-400 uppercase tracking-wider">Sahi Jawab</span>
+                </div>
+                <div class="h-12 w-px bg-white/10"></div>
+                <div>
+                    <span class="block text-2xl sm:text-3xl font-bold text-rose-400" th:text="${scorecard.wrongCount}">
+                        3
+                    </span>
+                    <span class="text-xs font-mono text-slate-400 uppercase tracking-wider">Galat Jawab</span>
+                </div>
+            </div>
+
+            <!-- Savage Summary Quote -->
+            <div class="bg-purple-950/20 border border-purple-500/20 rounded-xl p-5 mb-8 max-w-xl mx-auto">
+                <p class="text-base sm:text-lg font-medium text-slate-200 italic mb-2" th:text="'“' + ${scorecard.memeVerdict} + '”'">
+                    “Bhai tu quiz mat de, Chintu se coding seekh le.”
+                </p>
+                <p class="text-xs text-slate-400" th:text="${scorecard.savageSummary}">
+                    Summary explanation of the roast
+                </p>
+            </div>
+
+            <!-- Share and Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <a id="whatsappShareBtn" href="#" target="_blank"
+                   class="btn-primary w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 border-none shadow-emerald-900/40">
+                    <span>💬 Share Bezti on WhatsApp</span>
+                </a>
+                <a href="/" class="btn-secondary w-full sm:w-auto">
+                    <span>🔄 Ek Aur Baar Bezzati Karwao</span>
+                </a>
+                <a href="/admin" class="btn-secondary w-full sm:w-auto text-purple-400">
+                    <span>👑 Leaderboard Dekho</span>
+                </a>
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="py-6 text-center text-xs text-slate-500">
+        BakchodBrain Certificate Authority &bull; No Appeal Will Be Entertained
+    </footer>
+
+    <script th:inline="javascript">
+        const candidate = /*[[${scorecard.candidateName}]]*/ 'Main';
+        const score = /*[[${scorecard.score}]]*/ 0;
+        const title = /*[[${scorecard.roastTitle}]]*/ 'Gawar';
+        const category = /*[[${scorecard.categoryName}]]*/ 'General';
+
+        // Prepare WhatsApp Share link
+        const shareText = encodeURIComponent(
+            `🔥 Mera BakchodBrain score hai ${score}%!\n` +
+            `Mujhe title mila: "${title}" in ${category} Quiz 😂\n\n` +
+            `Dum hai to mera score tod ke dikha: ${window.location.origin}`
+        );
+        document.getElementById('whatsappShareBtn').href = `https://api.whatsapp.com/send?text=${shareText}`;
+    </script>
+</body>
+</html>

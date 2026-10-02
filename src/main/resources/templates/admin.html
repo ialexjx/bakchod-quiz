@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dictator Console | BakchodBrain Admin 👑</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="stylesheet" th:href="@{/css/apple-glass.css}">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Admin Nav -->
+    <header class="glass-nav py-4 px-6 md:px-12 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <a href="/" class="flex items-center gap-2 no-underline text-white font-bold">
+                <img th:src="@{/favicon.svg}" alt="Logo" class="w-8 h-8">
+                <span class="text-xl font-black">Bakchod<span class="text-gradient">Brain</span></span>
+            </a>
+            <span class="badge-pill badge-savage text-xs font-mono">👑 Dictator Panel</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="/" class="btn-secondary text-xs py-2 px-4">
+                Play Quiz
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
+
+        <!-- Header Title -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-extrabold text-white">Dictator Console & Leaderboard</h1>
+            <p class="text-slate-400 text-sm">Yahan sabki aukaat aur bezti ka record safe hai.</p>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
+            <div class="glass-card p-4 text-center">
+                <span class="block text-2xl font-bold text-white" th:text="${overview.totalAttempts}">0</span>
+                <span class="text-xs font-mono text-slate-400">Total Attempts</span>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <span class="block text-2xl font-bold text-purple-400" th:text="${overview.averageScore} + '%'">0%</span>
+                <span class="text-xs font-mono text-slate-400">Avg Accuracy</span>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <span class="block text-2xl font-bold text-emerald-400" th:text="${overview.totalHighScorers}">0</span>
+                <span class="text-xs font-mono text-slate-400">Legends (≥80%)</span>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <span class="block text-2xl font-bold text-rose-400" th:text="${overview.totalRoastees}">0</span>
+                <span class="text-xs font-mono text-slate-400">Gawars (&lt;40%)</span>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <span class="block text-2xl font-bold text-cyan-400" th:text="${overview.totalQuestions}">0</span>
+                <span class="text-xs font-mono text-slate-400">Total Sawal</span>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <span class="block text-2xl font-bold text-amber-400" th:text="${overview.totalCategories}">0</span>
+                <span class="text-xs font-mono text-slate-400">Streams</span>
+            </div>
+        </div>
+
+        <!-- Top 10 Hall of Shame / Fame -->
+        <div class="glass-panel p-6 mb-10">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-white">🏆 Hall of Fame (Top Performers)</h2>
+                    <p class="text-xs text-slate-400">Wo log jinhone sabse kam bezti karwayi hai</p>
+                </div>
+                <span class="badge-pill badge-success text-xs font-mono">Leaderboard</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="text-xs font-mono uppercase bg-white/5 text-slate-400">
+                        <tr>
+                            <th class="py-3 px-4">Rank</th>
+                            <th class="py-3 px-4">Candidate</th>
+                            <th class="py-3 px-4">Arena</th>
+                            <th class="py-3 px-4">Score</th>
+                            <th class="py-3 px-4">Correct / Total</th>
+                            <th class="py-3 px-4">Title Awarded</th>
+                            <th class="py-3 px-4">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5 font-mono">
+                        <tr th:each="lead, iter : ${overview.topLeaderboard}" class="hover:bg-white/5 transition">
+                            <td class="py-3 px-4 font-bold text-amber-400" th:text="'#' + ${iter.count}">#1</td>
+                            <td class="py-3 px-4 font-semibold text-white" th:text="${lead.candidateName}">Bunty</td>
+                            <td class="py-3 px-4 text-purple-300" th:text="${lead.categoryName}">Tech</td>
+                            <td class="py-3 px-4">
+                                <span class="badge-pill badge-success text-xs" th:text="${lead.score} + '%'">80%</span>
+                            </td>
+                            <td class="py-3 px-4" th:text="${lead.correctCount} + ' / ' + ${lead.totalQuestions}">4 / 5</td>
+                            <td class="py-3 px-4 text-xs font-sans text-rose-300" th:text="${lead.roastTitle}">TCS Bench Legend</td>
+                            <td class="py-3 px-4 text-xs text-slate-500" 
+                                th:text="${#temporals.format(lead.completedAt, 'dd MMM yyyy HH:mm')}">Time</td>
+                        </tr>
+                        <tr th:if="${overview.topLeaderboard.isEmpty()}">
+                            <td colspan="7" class="py-8 text-center text-slate-500 font-sans">
+                                Abhi kisi ne test nahi diya. Pehle khele to koi!
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Attempts Audit Log -->
+        <div class="glass-panel p-6 mb-10">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-white">📋 Recent Attempts & Bezti Log</h2>
+                    <p class="text-xs text-slate-400">Sabhi candidates ke live results</p>
+                </div>
+                <span class="badge-pill text-xs font-mono" th:text="${attempts.size()} + ' Records'">0</span>
+            </div>
+
+            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="text-xs font-mono uppercase bg-white/5 text-slate-400 sticky top-0 backdrop-blur-md">
+                        <tr>
+                            <th class="py-3 px-4">Candidate</th>
+                            <th class="py-3 px-4">Stream</th>
+                            <th class="py-3 px-4">Score</th>
+                            <th class="py-3 px-4">Result Summary</th>
+                            <th class="py-3 px-4">IP Hash</th>
+                            <th class="py-3 px-4">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5 font-mono text-xs">
+                        <tr th:each="att : ${attempts}" class="hover:bg-white/5 transition">
+                            <td class="py-3 px-4 font-semibold text-white" th:text="${att.candidateName}">Bunty</td>
+                            <td class="py-3 px-4 text-purple-300" th:text="${att.categoryName}">Tech</td>
+                            <td class="py-3 px-4">
+                                <span th:class="${att.score >= 60} ? 'badge-pill badge-success' : 'badge-pill badge-savage'"
+                                      th:text="${att.score} + '%'">40%</span>
+                            </td>
+                            <td class="py-3 px-4 text-slate-300 font-sans" th:text="${att.roastTitle}">Title</td>
+                            <td class="py-3 px-4 text-slate-500" th:text="${att.ipHash}">anon</td>
+                            <td class="py-3 px-4 text-slate-500" 
+                                th:text="${#temporals.format(att.completedAt, 'dd MMM HH:mm')}">Date</td>
+                        </tr>
+                        <tr th:if="${attempts.isEmpty()}">
+                            <td colspan="6" class="py-8 text-center text-slate-500 font-sans">
+                                Koi attempts record nahi hue hain abhi tak.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Question Bank Creator Form -->
+        <div class="glass-panel p-6 sm:p-8 mb-10 border-rose-500/20">
+            <h2 class="text-xl font-bold text-white mb-2">⚡ Naya Bakchod Sawal Add Karo</h2>
+            <p class="text-xs text-slate-400 mb-6">Admin Key daal kar naye sawal live inject karo.</p>
+
+            <form id="addQuestionForm" onsubmit="createQuestion(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono text-slate-400 mb-1">Admin Secret Key</label>
+                        <input id="adminKey" type="password" value="bakchodadmin69" required class="glass-input text-xs font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-slate-400 mb-1">Category / Stream</label>
+                        <select id="qCategory" class="glass-input text-xs" required>
+                            <option th:each="c : ${categories}" th:value="${c.slug}" th:text="${c.name}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-slate-400 mb-1">Difficulty</label>
+                        <select id="qDiff" class="glass-input text-xs">
+                            <option value="EASY">EASY (Chintu Level)</option>
+                            <option value="MEDIUM" selected>MEDIUM (Corporate Slave)</option>
+                            <option value="HARD">HARD (Khatarnak)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-mono text-slate-400 mb-1">Question Text</label>
+                    <textarea id="qText" rows="2" placeholder="e.g. Jab PM bole 'Quick 5 min sync', iska asli matlab kya hota hai?" required class="glass-input text-sm"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono text-slate-400 mb-1">Option A</label>
+                        <input id="optA" type="text" placeholder="Option A text" required class="glass-input text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-slate-400 mb-1">Option B</label>
+                        <input id="optB" type="text" placeholder="Option B text" required class="glass-input text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-slate-400 mb-1">Option C</label>
+                        <input id="optC" type="text" placeholder="Option C text" required class="glass-input text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-slate-400 mb-1">Option D</label>
+                        <input id="optD" type="text" placeholder="Option D text" required class="glass-input text-xs">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono text-slate-400 mb-1">Sahi Option (A, B, C, D)</label>
+                        <select id="correctOpt" class="glass-input text-xs font-mono font-bold" required>
+                            <option value="A">Option A</option>
+                            <option value="B">Option B</option>
+                            <option value="C">Option C</option>
+                            <option value="D">Option D</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-mono text-slate-400 mb-1">Explanation (Sach kya hai?)</label>
+                        <input id="qExpl" type="text" placeholder="e.g. 5 min bolke 1 ghanta weekend pe kaam karwayega" class="glass-input text-xs">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono text-rose-400 mb-1">Custom Roast (Agar galat diya)</label>
+                        <input id="qRoast" type="text" placeholder="e.g. Bhai tu HR ke pizza party me hi khush reh" class="glass-input text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-emerald-400 mb-1">Custom Praise (Agar sahi diya)</label>
+                        <input id="qPraise" type="text" placeholder="e.g. Lagta hai corporate trauma jhela hai tune" class="glass-input text-xs">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex justify-end">
+                    <button type="submit" class="btn-primary text-xs py-3 px-6">
+                        ➕ Save & Publish Sawal
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Question Bank List -->
+        <div class="glass-panel p-6">
+            <h2 class="text-xl font-bold text-white mb-4">📚 Active Question Bank (<span th:text="${questions.size()}">0</span>)</h2>
+            <div class="space-y-3">
+                <div th:each="q : ${questions}" class="p-4 bg-white/5 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="badge-pill bg-purple-500/20 text-purple-300 text-xs font-mono" th:text="${q.category.name}">Category</span>
+                            <span class="text-xs font-mono text-slate-500" th:text="'Ans: ' + ${q.correctOption}">Ans: B</span>
+                        </div>
+                        <p class="text-sm font-semibold text-white" th:text="${q.questionText}">Question</p>
+                    </div>
+                    <button th:attr="data-id=${q.id}" onclick="deleteQuestion(this.getAttribute('data-id'))"
+                            class="badge-pill badge-savage hover:bg-rose-600/40 text-xs cursor-pointer">
+                        🗑️ Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="py-6 text-center text-xs text-slate-600 font-mono">
+        BakchodBrain Dictator Console &bull; Confidential
+    </footer>
+
+    <script>
+        async function createQuestion(e) {
+            e.preventDefault();
+            const adminKey = document.getElementById('adminKey').value;
+            const payload = {
+                categorySlug: document.getElementById('qCategory').value,
+                questionText: document.getElementById('qText').value,
+                optionA: document.getElementById('optA').value,
+                optionB: document.getElementById('optB').value,
+                optionC: document.getElementById('optC').value,
+                optionD: document.getElementById('optD').value,
+                correctOption: document.getElementById('correctOpt').value,
+                explanation: document.getElementById('qExpl').value,
+                customRoast: document.getElementById('qRoast').value,
+                customPraise: document.getElementById('qPraise').value,
+                difficulty: document.getElementById('qDiff').value
+            };
+
+            try {
+                const res = await fetch('/api/v1/admin/questions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Key': adminKey
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    alert('Error: ' + (err.error || 'Question save nahi hua'));
+                    return;
+                }
+
+                alert('✅ Sawal successfully inject ho gaya!');
+                window.location.reload();
+            } catch (err) {
+                alert('Request failed: ' + err.message);
+            }
+        }
+
+        async function deleteQuestion(id) {
+            const adminKey = prompt('Admin Secret Key enter karo delete karne ke liye:');
+            if (!adminKey) return;
+
+            try {
+                const res = await fetch(`/api/v1/admin/questions/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-Admin-Key': adminKey
+                    }
+                });
+
+                if (!res.ok) {
+                    alert('Delete nahi hua! Key galat ho sakti hai.');
+                    return;
+                }
+
+                alert('🗑️ Sawal khatam!');
+                window.location.reload();
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
